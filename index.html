@@ -1,684 +1,706 @@
-import React, { useState, useEffect } from 'react';
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSK3 第15课：我是半个南京人</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel (使用稳定版本) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.3/babel.min.js"></script>
+</head>
+<body class="bg-slate-900 text-white font-sans antialiased">
+    <div id="root"></div>
 
-// --- ICONS (使用内联 SVG 替代第三方库以解决预览环境依赖报错) ---
-const Volume2 = ({ size = 24, className = "" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-    <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-    <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-  </svg>
-);
+    <!-- 明确指定 presets 为 react -->
+    <script type="text/babel" data-presets="react">
+        const { useState, useEffect } = React;
 
-const ChevronLeft = ({ size = 24, className = "" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="m15 18-6-6 6-6" />
-  </svg>
-);
+        // --- ICONS (使用内联 SVG 替代第三方库以解决预览环境依赖报错) ---
+        const Volume2 = ({ size = 24, className = "" }) => (
+          <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+          </svg>
+        );
 
-const ChevronRight = ({ size = 24, className = "" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="m9 18 6-6-6-6" />
-  </svg>
-);
+        const ChevronLeft = ({ size = 24, className = "" }) => (
+          <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <path d="m15 18-6-6 6-6" />
+          </svg>
+        );
 
-const RotateCcw = ({ size = 24, className = "" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-    <path d="M3 3v5h5" />
-  </svg>
-);
+        const ChevronRight = ({ size = 24, className = "" }) => (
+          <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <path d="m9 18 6-6-6-6" />
+          </svg>
+        );
 
-// --- DATA ---
-const vocabulary = [
-  { ch: "蓝", pinyin: "lán", uz: "ko'k", ru: "синий", en: "blue" },
-  { ch: "段", pinyin: "duàn", uz: "qism / davr", ru: "отрезок / период", en: "period / section" },
-  { ch: "附近", pinyin: "fùjìn", uz: "yaqin atrofda", ru: "поблизости", en: "nearby" },
-  { ch: "马路", pinyin: "mǎlù", uz: "yo'l / ko'cha", ru: "дорога / улица", en: "road / street" },
-  { ch: "平时", pinyin: "píngshí", uz: "odatda", ru: "обычно", en: "usually" },
-  { ch: "放学", pinyin: "fàngxué", uz: "darsdan chiqish", ru: "заканчивать занятия", en: "finish school" },
-  { ch: "游戏", pinyin: "yóuxì", uz: "o'yin", ru: "игра", en: "game" },
-  { ch: "老人", pinyin: "lǎorén", uz: "qariya", ru: "пожилой человек", en: "elderly people" },
-  { ch: "根据", pinyin: "gēnjù", uz: "ga ko'ra / asosida", ru: "согласно / на основании", en: "according to" },
-  { ch: "了解", pinyin: "liǎojiě", uz: "tushunmoq / bilmoq", ru: "понимать / знать", en: "understand / know" },
-  { ch: "可是", pinyin: "kěshì", uz: "lekin / biroq", ru: "но / однако", en: "but / however" },
-  { ch: "以上", pinyin: "yǐshàng", uz: "dan yuqori / dan ko'p", ru: "свыше / более", en: "more than / over" },
-  { ch: "有名", pinyin: "yǒumíng", uz: "mashhur", ru: "известный", en: "famous" },
-  { ch: "景点", pinyin: "jǐngdiǎn", uz: "diqqatga sazovor joy", ru: "достопримечательность", en: "scenic spot" },
-  { ch: "游客", pinyin: "yóukè", uz: "sayyoh", ru: "турист", en: "tourist" },
-  { ch: "外地", pinyin: "wàidì", uz: "boshqa joy", ru: "другое место", en: "other place" },
-  { ch: "聊", pinyin: "liáo", uz: "suhbatlashmoq", ru: "болтать", en: "chat" },
-  { ch: "南京", pinyin: "Nánjīng", uz: "Nankin", ru: "Нанкин", en: "Nanjing" },
-  { ch: "河", pinyin: "hé", uz: "daryo", ru: "река", en: "river" },
-  { ch: "关系", pinyin: "guānxi", uz: "munosabat / aloqa", ru: "отношение / связь", en: "relationship / connection" },
-  { ch: "养", pinyin: "yǎng", uz: "boqmoq / o'stirmoq", ru: "растить / содержать", en: "raise / keep" },
-  { ch: "黄河", pinyin: "Huáng Hé", uz: "Xuanxe daryosi", ru: "Хуанхэ (Желтая река)", en: "Yellow River" },
-  { ch: "西北", pinyin: "xīběi", uz: "shimoli-g'arb", ru: "северо-запад", en: "northwest" },
-  { ch: "经过", pinyin: "jīngguò", uz: "o'tib ketmoq / jarayon", ru: "проходить мимо / процесс", en: "pass by / process" },
-  { ch: "草地", pinyin: "cǎodì", uz: "o'tloq / maysazor", ru: "луг / газон", en: "meadow / lawn" },
-  { ch: "遇见", pinyin: "yùjiàn", uz: "uchrashmoq / duch kelmoq", ru: "встретить", en: "meet / come across" }
-];
+        const RotateCcw = ({ size = 24, className = "" }) => (
+          <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+            <path d="M3 3v5h5" />
+          </svg>
+        );
 
-const dialogues = [
-  {
-    title: "1-Matn: 同乐 (Tónglè) & 王一雪 (Wáng Yīxuě)",
-    lines: [
-      { speaker: "杨同乐", ch: "您搬到蓝天小区一段时间了，觉得怎么样？", pinyin: "Nín bāndào Lántiān xiǎoqū yí duàn shíjiān le, juéde zěnmeyàng?", uz: "Siz Moviy osmon turar-joyiga ko'chib o'tganingizga biroz vaqt bo'ldi, qanday tuyulyapti?", ru: "Вы переехали в микрорайон 'Голубое небо' некоторое время назад, как вам?", en: "You've moved to Blue Sky community for a period of time, how do you feel?" },
-      { speaker: "王一雪", ch: "小区环境挺好的，附近买东西也很方便，过马路就是超市。", pinyin: "Xiǎoqū huánjìng tǐng hǎo de, fùjìn mǎi dōngxi yě hěn fāngbiàn, guò mǎlù jiùshì chāoshì.", uz: "Majmua muhiti juda yaxshi, yaqin atrofda narsa sotib olish ham qulay, yo'ldan o'tsangiz supermarket bor.", ru: "Обстановка в микрорайоне очень хорошая, поблизости удобно делать покупки, через дорогу супермаркет.", en: "The community environment is quite good, buying things nearby is also convenient, just across the road is a supermarket." },
-      { speaker: "杨同乐", ch: "平时孩子们在哪儿玩？", pinyin: "Píngshí háizimen zài nǎr wán?", uz: "Odatda bolalar qayerda o'ynashadi?", ru: "Обычно где играют дети?", en: "Where do children usually play?" },
-      { speaker: "王一雪", ch: "小区里有很多树，孩子们放学后就在树下做游戏。你想买房子吗？", pinyin: "Xiǎoqū li yǒu hěnduō shù, háizimen fàngxué hòu jiù zài shù xià zuò yóuxì. Nǐ xiǎng mǎi fángzi ma?", uz: "Majmuada ko'p daraxtlar bor, bolalar maktabdan qaytgach, daraxtlar ostida o'ynashadi. Uy sotib olmoqchimisiz?", ru: "В микрорайоне много деревьев, дети после школы играют под деревьями. Вы хотите купить дом?", en: "There are many trees in the community, children play games under the trees after school. Do you want to buy a house?" },
-      { speaker: "杨同乐", ch: "是。我想买一个大房子，让我爸妈过来跟我一起住。", pinyin: "Shì. Wǒ xiǎng mǎi yí gè dà fángzi, ràng wǒ bàmā guòlái gēn wǒ yìqǐ zhù.", uz: "Ha. Katta uy sotib olib, ota-onamni men bilan yashashga chaqirmoqchiman.", ru: "Да. Я хочу купить большой дом, чтобы мои родители переехали жить со мной.", en: "Yes. I want to buy a big house and let my parents come over to live with me." },
-      { speaker: "王一雪", ch: "蓝天小区的老人挺多的，这几年小区根据他们的需要，有了很多变化。", pinyin: "Lántiān xiǎoqū de lǎorén tǐng duō de, zhè jǐ nián xiǎoqū gēnjù tāmen de xūyào, yǒule hěnduō biànhuà.", uz: "Moviy osmon majmuasida qariyalar ko'p, so'nggi yillarda majmua ularning ehtiyojlariga qarab juda o'zgardi.", ru: "В микрорайоне 'Голубое небо' довольно много пожилых людей, за последние несколько лет микрорайон сильно изменился в соответствии с их потребностями.", en: "There are quite a few elderly people in Blue Sky community, in recent years the community has made many changes according to their needs." },
-      { speaker: "杨同乐", ch: "真不错！过几天我去蓝天小区看看。", pinyin: "Zhēn búcuò! Guò jǐ tiān wǒ qù Lántiān xiǎoqū kànkan.", uz: "Juda yaxshi! Bir necha kundan keyin Moviy osmon majmuasini borib ko'raman.", ru: "Действительно неплохо! Через несколько дней я пойду в микрорайон 'Голубое небо' посмотреть.", en: "Really nice! In a few days I'll go take a look at Blue Sky community." }
-    ]
-  },
-  {
-    title: "2-Matn: 同乐 (Tónglè) & 王一雪 (Wáng Yīxuě)",
-    lines: [
-      { speaker: "王一雪", ch: "假期我想去南京旅游，但是我不太了解那里。", pinyin: "Jiàqī wǒ xiǎng qù Nánjīng lǚyóu, dànshì wǒ bú tài liǎojiě nàlǐ.", uz: "Ta'tilda Nankingga sayohat qilmoqchiman, lekin u yerni unchalik bilmayman.", ru: "В отпуск я хочу поехать в Нанкин, но я плохо знаю это место.", en: "During the holiday I want to travel to Nanjing, but I don't know much about it." },
-      { speaker: "杨同乐", ch: "我虽然不是南京人，可是我是在南京上的大学，可以说是半个南京人。", pinyin: "Wǒ suīrán bú shì Nánjīng rén, kěshì wǒ shì zài Nánjīng shàng de dàxué, kěyǐ shuō shì bàngè Nánjīng rén.", uz: "Men Nankinlik bo'lmasam ham, Nankinda universitetda o'qiganman, o'zimni yarim Nankinlik desam bo'ladi.", ru: "Хотя я не из Нанкина, я учился в университете в Нанкине, можно сказать, что я наполовину нанкинец.", en: "Although I'm not from Nanjing, I went to university in Nanjing, you could say I'm half a Nanjing local." },
-      { speaker: "王一雪", ch: "太好了！你快给我介绍一下南京吧。", pinyin: "Tài hǎo le! Nǐ kuài gěi wǒ jièshào yíxià Nánjīng ba.", uz: "Juda yaxshi! Tezda menga Nankinni tanishtirib bering.", ru: "Отлично! Быстрее расскажи мне о Нанкине.", en: "Great! Quickly introduce Nanjing to me." },
-      { speaker: "杨同乐", ch: "南京有两千年以上的历史，有老城、老街，还有很多有名的景点，每年去旅游的游客特别多。", pinyin: "Nánjīng yǒu liǎngqiān nián yǐshàng de lìshǐ, yǒu lǎochéng, lǎojiē, hái yǒu hěnduō yǒumíng de jǐngdiǎn, měinián qù lǚyóu de yóukè tèbié duō.", uz: "Nankin ikki ming yildan ortiq tarixga ega, eski shahar, eski ko'chalar, shuningdek, juda ko'p mashhur joylar bor, har yili sayohatchilar juda ko'p bo'ladi.", ru: "У Нанкина более чем двухтысячелетняя история, есть старый город, старые улицы, а также много известных достопримечательностей, туристов, приезжающих сюда каждый год, особенно много.", en: "Nanjing has a history of more than 2000 years, there's an old city, old streets, and many famous scenic spots, tourists who go there every year are especially numerous." },
-      { speaker: "王一雪", ch: "除了这些以外，你再告诉我一些外地人不知道的地方。", pinyin: "Chúle zhèxiē yǐwài, nǐ zài gàosu wǒ yìxiē wàidì rén bù zhīdào de dìfang.", uz: "Bulardan tashqari, menga begona odamlar bilmaydigan ba'zi joylarni ayting.", ru: "Помимо этого, расскажи мне еще о некоторых местах, которые не знают приезжие.", en: "Besides these, tell me some places that outsiders don't know about." },
-      { speaker: "杨同乐", ch: "那太多了，我得一点儿一点儿给您讲。", pinyin: "Nà tài duō le, wǒ děi yìdiǎnr yìdiǎnr gěi nín jiǎng.", uz: "Ular juda ko'p, men sizga oz-ozdan aytib berishim kerak.", ru: "Их слишком много, я должен рассказывать вам понемногу.", en: "There are too many, I have to tell you little by little." },
-      { speaker: "王一雪", ch: "行，下班后我请你吃晚饭，咱们边吃边聊。", pinyin: "Xíng, xiàbān hòu wǒ qǐng nǐ chī wǎnfàn, zánmen biān chī biān liáo.", uz: "Yaxshi, ishdan keyin sizni kechki ovqatga taklif qilaman, ovqatlanib suhbatlashamiz.", ru: "Хорошо, после работы я угощу тебя ужином, поедим и поболтаем.", en: "Okay, after work I'll treat you to dinner, we can eat and chat." }
-    ]
-  },
-  {
-    title: "3-Matn: 王一雪 (Wáng Yīxuě) & 刘小明 (Liú Xiǎomíng)",
-    lines: [
-      { speaker: "王一雪", ch: "小明，中国有一条大河，它的名字跟颜色有关系，你知道是什么河吗？", pinyin: "Xiǎomíng, Zhōngguó yǒu yì tiáo dà hé, tā de míngzi gēn yánsè yǒu guānxi, nǐ zhīdào shì shénme hé ma?", uz: "Syaomin, Xitoyda bir katta daryo bor, uning nomi rang bilan bog'liq, qanday daryoligini bilasizmi?", ru: "Сяомин, в Китае есть большая река, ее название связано с цветом, ты знаешь, что это за река?", en: "Xiaoming, China has a big river, its name is related to a color, do you know what river it is?" },
-      { speaker: "刘小明", ch: "我知道，是黄河！", pinyin: "Wǒ zhīdào, shì Huáng Hé!", uz: "Bilaman, bu Xuanxe daryosi!", ru: "Я знаю, это Хуанхэ!", en: "I know, it's the Yellow River!" },
-      { speaker: "王一雪", ch: "你说对了。我再问问你，你知道它为什么叫黄河吗？", pinyin: "Nǐ shuō duì le. Wǒ zài wènwen nǐ, nǐ zhīdào tā wèishénme jiào Huáng Hé ma?", uz: "To'g'ri aytdingiz. Yana so'rayman, nima uchun u Xuanxe (Sariq daryo) deb atalishini bilasizmi?", ru: "Ты прав. Я еще спрошу тебя, ты знаешь, почему она называется Хуанхэ?", en: "You're right. Let me ask you again, do you know why it's called the Yellow River?" },
-      { speaker: "刘小明", ch: "因为河水看起来是黄色的，所以叫这个名字。黄河是中国最长的河吗？", pinyin: "Yīnwèi héshuǐ kàn qǐlái shì huángsè de, suǒyǐ jiào zhège míngzi. Huáng Hé shì Zhōngguó zuì cháng de hé ma?", uz: "Chunki daryo suvi sariq rangda ko'rinadi, shuning uchun shunday ataladi. Xuanxe Xitoydagi eng uzun daryomi?", ru: "Потому что вода в реке кажется желтой, поэтому она так называется. Хуанхэ - самая длинная река в Китае?", en: "Because the river water looks yellow, so it has this name. Is the Yellow River the longest river in China?" },
-      { speaker: "王一雪", ch: "不是。黄河虽然不是最长的河，可是在历史上很重要。", pinyin: "Bú shì. Huáng Hé suīrán bú shì zuì cháng de hé, kěshì zài lìshǐ shàng hěn zhòngyào.", uz: "Yo'q. Xuanxe garchi eng uzun daryo bo'lmasa ham, tarixda juda muhim ahamiyatga ega.", ru: "Нет. Хотя Хуанхэ не самая длинная река, но в истории она очень важна.", en: "No. Although the Yellow River is not the longest river, it is very important in history." },
-      { speaker: "刘小明", ch: "这个我知道。很久以前，很多中国人都住在黄河边上。", pinyin: "Zhège wǒ zhīdào. Hěn jiǔ yǐqián, hěnduō Zhōngguó rén dōu zhù zài Huáng Hé biān shàng.", uz: "Buni bilaman. Uzoq o'tmishda ko'plab xitoyliklar Xuanxe daryosi bo'yida yashashgan.", ru: "Это я знаю. Давным-давно многие китайцы жили на берегах Хуанхэ.", en: "I know this. A long time ago, many Chinese people lived along the banks of the Yellow River." },
-      { speaker: "王一雪", ch: "对。在我们中国人看来，黄河像妈妈一样，养了我们几千年。", pinyin: "Duì. Zài wǒmen Zhōngguó rén kànlái, Huáng Hé xiàng māma yíyàng, yǎng le wǒmen jǐqiān nián.", uz: "To'g'ri. Biz xitoyliklar nazarda, Xuanxe daryosi onamizga o'xshaydi, bizni ming yillar davomida boqib kelgan.", ru: "Да. На наш, китайцев, взгляд, Хуанхэ как мать, кормила нас тысячелетиями.", en: "Right. In the eyes of us Chinese, the Yellow River is like a mother, raising us for thousands of years." }
-    ]
-  },
-  {
-    title: "4-Matn: 王一雪's Diary",
-    lines: [
-      { speaker: "日记", ch: "我小时候住在北京的西北边，有一条非常有名的河经过那里。", pinyin: "Wǒ xiǎoshíhou zhù zài Běijīng de xīběi biān, yǒu yì tiáo fēicháng yǒumíng de hé jīngguò nàlǐ.", uz: "Bolaligimda Pekinning shimoli-g'arbida yashardim, u yerdan juda mashhur bir daryo o'tardi.", ru: "В детстве я жил на северо-западе Пекина, там протекала очень известная река.", en: "When I was young I lived in the northwest of Beijing, a very famous river passed by there." },
-      { speaker: "日记", ch: "我家就住在河边。那里有高高的大树和绿绿的草地。", pinyin: "Wǒ jiā jiù zhù zài hébiān. Nàlǐ yǒu gāogāo de dàshù hé lǜlǜ de cǎodì.", uz: "Uyimiz aynan daryo bo'yida edi. U yerda baland daraxtlar va yam-yashil o'tloqlar bor edi.", ru: "Мой дом находился прямо у реки. Там были высокие деревья и зеленые луга.", en: "My house was right by the river. There were tall trees and green meadows there." },
-      { speaker: "日记", ch: "春天，河边的花都开了，看起来特别漂亮。还记得小时候，一到夏天我就去河里游泳。", pinyin: "Chūntiān, hébiān de huā dōu kāi le, kàn qǐlái tèbié piàoliang. Hái jìde xiǎoshíhou, yídào xiàtiān wǒ jiù qù héli yóuyǒng.", uz: "Bahorda daryo bo'yidagi gullar ochilardi, juda chiroyli ko'rinardi. Bolaligim esimda, yoz kelishi bilan daryoga cho'milishga borardim.", ru: "Весной у реки распускались все цветы, выглядело это особенно красиво. Еще помню в детстве, как только наступало лето, я шел купаться в реке.", en: "In spring, all the flowers by the river bloomed, it looked especially beautiful. Still remember when I was young, as soon as summer came I would go swim in the river." },
-      { speaker: "日记", ch: "长大以后，遇到什么不开心的事情，我就去河边的树下坐着，听听鸟叫，看看河水，跟遇见的朋友聊聊天儿，难过的事情不一会儿就忘了。那是我最喜欢的地方。", pinyin: "Zhǎngdà yǐhòu, yùdào shénme bù kāixīn de shìqing, wǒ jiù qù hébiān de shù xià zuòzhe, tīngting niǎo jiào, kànkan héshuǐ, gēn yùjiàn de péngyou liáoliao tiānr, nánguò de shìqing bù yíhuìr jiù wàng le. Nà shì wǒ zuì xǐhuan de dìfang.", uz: "Katta bo'lganimdan keyin, xafa qiladigan biron voqea yuz bersa, daryo bo'yidagi daraxt ostiga borib o'tiraman, qushlar sayrashini eshitaman, daryo suviga qarayman, uchratgan do'stlarim bilan suhbatlashaman, va qiyin narsalar bir pasda yoddan ko'tariladi. Bu mening eng sevimli joyim.", ru: "Повзрослев, когда случалось что-то неприятное, я шел посидеть под деревом у реки, послушать пение птиц, посмотреть на воду, поболтать со встреченными друзьями, и грустные вещи вскоре забывались. Это мое любимое место.", en: "After growing up, whenever I encountered something unhappy, I would go sit under the tree by the river, listen to the birds, look at the river water, chat with friends I met, and sad things would soon be forgotten. That is my favorite place." }
-    ]
-  }
-];
+        // --- DATA ---
+        const vocabulary = [
+          { ch: "蓝", pinyin: "lán", uz: "ko'k", ru: "синий", en: "blue" },
+          { ch: "段", pinyin: "duàn", uz: "qism / davr", ru: "отрезок / период", en: "period / section" },
+          { ch: "附近", pinyin: "fùjìn", uz: "yaqin atrofda", ru: "поблизости", en: "nearby" },
+          { ch: "马路", pinyin: "mǎlù", uz: "yo'l / ko'cha", ru: "дорога / улица", en: "road / street" },
+          { ch: "平时", pinyin: "píngshí", uz: "odatda", ru: "обычно", en: "usually" },
+          { ch: "放学", pinyin: "fàngxué", uz: "darsdan chiqish", ru: "заканчивать занятия", en: "finish school" },
+          { ch: "游戏", pinyin: "yóuxì", uz: "o'yin", ru: "игра", en: "game" },
+          { ch: "老人", pinyin: "lǎorén", uz: "qariya", ru: "пожилой человек", en: "elderly people" },
+          { ch: "根据", pinyin: "gēnjù", uz: "ga ko'ra / asosida", ru: "согласно / на основании", en: "according to" },
+          { ch: "了解", pinyin: "liǎojiě", uz: "tushunmoq / bilmoq", ru: "понимать / знать", en: "understand / know" },
+          { ch: "可是", pinyin: "kěshì", uz: "lekin / biroq", ru: "но / однако", en: "but / however" },
+          { ch: "以上", pinyin: "yǐshàng", uz: "dan yuqori / dan ko'p", ru: "свыше / более", en: "more than / over" },
+          { ch: "有名", pinyin: "yǒumíng", uz: "mashhur", ru: "известный", en: "famous" },
+          { ch: "景点", pinyin: "jǐngdiǎn", uz: "diqqatga sazovor joy", ru: "достопримечательность", en: "scenic spot" },
+          { ch: "游客", pinyin: "yóukè", uz: "sayyoh", ru: "турист", en: "tourist" },
+          { ch: "外地", pinyin: "wàidì", uz: "boshqa joy", ru: "другое место", en: "other place" },
+          { ch: "聊", pinyin: "liáo", uz: "suhbatlashmoq", ru: "болтать", en: "chat" },
+          { ch: "南京", pinyin: "Nánjīng", uz: "Nankin", ru: "Нанкин", en: "Nanjing" },
+          { ch: "河", pinyin: "hé", uz: "daryo", ru: "река", en: "river" },
+          { ch: "关系", pinyin: "guānxi", uz: "munosabat / aloqa", ru: "отношение / связь", en: "relationship / connection" },
+          { ch: "养", pinyin: "yǎng", uz: "boqmoq / o'stirmoq", ru: "растить / содержать", en: "raise / keep" },
+          { ch: "黄河", pinyin: "Huáng Hé", uz: "Xuanxe daryosi", ru: "Хуанхэ (Желтая река)", en: "Yellow River" },
+          { ch: "西北", pinyin: "xīběi", uz: "shimoli-g'arb", ru: "северо-запад", en: "northwest" },
+          { ch: "经过", pinyin: "jīngguò", uz: "o'tib ketmoq / jarayon", ru: "проходить мимо / процесс", en: "pass by / process" },
+          { ch: "草地", pinyin: "cǎodì", uz: "o'tloq / maysazor", ru: "луг / газон", en: "meadow / lawn" },
+          { ch: "遇见", pinyin: "yùjiàn", uz: "uchrashmoq / duch kelmoq", ru: "встретить", en: "meet / come across" }
+        ];
 
-const grammarPoints = [
-  {
-    title: "1. 根据 (gēnjù) - ga ko'ra / asosida",
-    ch_desc: "介词“根据”在句子中引出事情的依据或理由。",
-    desc: "Предлог '根据' вводит основание или причину действия в предложении.",
-    uz_desc: "'根据' predlogi harakatning asosi yoki sababini bildiradi.",
-    examples: [
-      { ch: "这几年小区根据他们的需要，有了很多变化。", py: "Zhè jǐ nián xiǎoqū gēnjù tāmen de xūyào, yǒule hěnduō biànhuà.", uz: "Shu yillarda turar-joy majmuasi ularning ehtiyojlariga ko'ra ko'p o'zgarishlarga duch keldi." },
-      { ch: "根据要求，我们必须参加明天的会议。", py: "Gēnjù yāoqiú, wǒmen bìxū cānjiā míngtiān de huìyì.", uz: "Talabga ko'ra, biz ertangi majlisda qatnashishimiz shart." },
-      { ch: "老师根据每个学生的兴趣，选择了不一样的书。", py: "Lǎoshī gēnjù měigè xuéshēng de xìngqù, xuǎnzé le bù yíyàng de shū.", uz: "O'qituvchi har bir talabaning qiziqishiga ko'ra turli xil kitoblarni tanladi." }
-    ]
-  },
-  {
-    title: "2. 数词+量词+数词+量词 (Miqdoriy takrorlash)",
-    ch_desc: "数量短语可以重叠，重叠后可作状语，一般表示动作的方式，有形象化的作用。",
-    desc: "Количественно-именные словосочетания могут дублироваться и использоваться в качестве обстоятельства образа действия.",
-    uz_desc: "Miqdor va hisob so'zlari takrorlanib kelib, harakatning holatini bildiradi.",
-    examples: [
-      { ch: "我得一点儿一点儿给您讲。", py: "Wǒ děi yìdiǎnr yìdiǎnr gěi nín jiǎng.", uz: "Men sizga oz-ozdan aytib berishim kerak." },
-      { ch: "学生们的汉语水平一天一天地提高了。", py: "Xuéshēngmen de Hànyǔ shuǐpíng yìtiān yìtiān de tígāo le.", uz: "Talabalarning xitoy tili darajasi kundan-kunga oshib bordi." },
-      { ch: "他们两个两个地走进去了。", py: "Tāmen liǎnggè liǎnggè de zǒujìn qù le.", uz: "Ular ikkitadan bo'lib kirib ketishdi." }
-    ]
-  },
-  {
-    title: "3. 在……看来 (zài...kànlái) - ... nazarda / fikriga ko'ra",
-    ch_desc: "固定短语“在……看来”表示个人或某个群体的观点。",
-    desc: "Устойчивая фраза '在……看来' используется для выражения точки зрения человека или группы.",
-    uz_desc: "'在……看来' iborasi bir kishi yoki guruhning fikrini, nazariini bildirish uchun ishlatiladi.",
-    examples: [
-      { ch: "在我们中国人看来，黄河像妈妈一样，养了我们几千年。", py: "Zài wǒmen Zhōngguó rén kànlái, Huáng Hé xiàng māma yíyàng, yǎng le wǒmen jǐqiān nián.", uz: "Biz xitoyliklar nazarda, Xuanxe daryosi ona kabi bo'lib, bizni ming yillar davomida boqdi." },
-      { ch: "在同事们看来，她工作非常认真。", py: "Zài tóngshìmen kànlái, tā gōngzuò fēicháng rènzhēn.", uz: "Kasbdoshlar nazarda, u ishga juda jiddiy yondashadi." },
-      { ch: "在我看来，每天读书是一种很好的习惯。", py: "Zài wǒ kànlái, měitiān dúshū shì yì zhǒng hěn hǎo de xíguàn.", uz: "Mening fikrimcha, har kuni kitob o'qish juda yaxshi odat." }
-    ]
-  },
-  {
-    title: "4. 不一会儿 (bù yíhuìr) - birpasda / birozdan so'ng",
-    ch_desc: "固定短语“不一会儿”表示很短的时间，在句中作状语，多用于口语。",
-    desc: "Означает 'через короткое время'. Выполняет функцию обстоятельства.",
-    uz_desc: "Qisqa vaqt o'tgach, bir zumda degan ma'noni bildiradi.",
-    examples: [
-      { ch: "难过的事情不一会儿就忘了。", py: "Nánguò de shìqing bù yíhuìr jiù wàng le.", uz: "Qayg'uli narsalar birozdan keyin unutiladi." },
-      { ch: "不一会儿，张校长就来了。", py: "Bù yíhuìr, Zhāng xiàozhǎng jiù lái le.", uz: "Birozdan so'ng, direktor Chjan keldi." },
-      { ch: "两个小时看起来长，但是不一会儿就过去了。", py: "Liǎng gè xiǎoshí kàn qǐlái cháng, dànshì bù yíhuìr jiù guòqù le.", uz: "Ikki soat uzoq ko'rinadi, lekin birpasda o'tib ketdi." }
-    ]
-  }
-];
-
-const grammarTestQuestions = [
-  { q: "难过的事情____就忘了。", options: ["不一会儿", "在我看来", "根据", "可是"], answer: "不一会儿" },
-  { q: "____他们的需要，小区有了很多变化。", options: ["根据", "一边", "经过", "遇见"], answer: "根据" },
-  { q: "____，每天读书是一种很好的习惯。", options: ["在我看来", "不一会儿", "可是", "以上"], answer: "在我看来" },
-  { q: "那太多了，我得____给您讲。", options: ["一点儿一点儿", "不一会儿", "根据", "在看来"], answer: "一点儿一点儿" },
-  { q: "大家____走进了会议室。", options: ["一个一个地", "一会儿一会儿", "了解了解", "经过经过"], answer: "一个一个地" },
-  { q: "老师会____，给每个学生不同的作业。", options: ["根据学生的水平", "一点儿一点儿", "不一会儿", "经过那里"], answer: "根据学生的水平" },
-  { q: "____，黄河像妈妈一样。", options: ["在我们看来", "不一会儿", "根据", "可是"], answer: "在我们看来" },
-  { q: "只有几道题，他____就做完了。", options: ["不一会儿", "在我看来", "根据", "以上"], answer: "不一会儿" }
-];
-
-const fillInBlanksQuestions = [
-  { sentenceParts: ["过 ", " 就是超市。"], answer: "马路", options: ["马路", "老人", "河", "外地"] },
-  { sentenceParts: ["假期我想去南京旅游，但是我不太 ", " 那里。"], answer: "了解", options: ["了解", "可是", "经过", "养"] },
-  { sentenceParts: ["南京有两千年 ", " 的历史。"], answer: "以上", options: ["以上", "平时", "游戏", "西北"] },
-  { sentenceParts: ["每年去旅游的 ", " 特别多。"], answer: "游客", options: ["游客", "老人", "草地", "马路"] },
-  { sentenceParts: ["你再告诉我一些 ", " 人不知道的地方。"], answer: "外地", options: ["外地", "附近", "南京", "游戏"] },
-  { sentenceParts: ["行，下班后咱们边吃边 ", "。"], answer: "聊", options: ["聊", "遇见", "了解", "养"] },
-  { sentenceParts: ["中国有一条大河，它的名字跟颜色有 ", "。"], answer: "关系", options: ["关系", "段", "景点", "草地"] },
-  { sentenceParts: ["我家就住在 ", " 边。"], answer: "河", options: ["河", "蓝", "外地", "西北"] },
-  { sentenceParts: ["黄河像妈妈一样，", " 了我们几千年。"], answer: "养", options: ["养", "放学", "经过", "遇见"] },
-  { sentenceParts: ["有一条非常 ", " 的河经过那里。"], answer: "有名", options: ["有名", "蓝", "老人", "外地"] },
-  { sentenceParts: ["那里有高高的大树和绿绿的 ", "。"], answer: "草地", options: ["草地", "游客", "景点", "关系"] },
-  { sentenceParts: ["去河边的树下坐着，跟 ", " 的朋友聊聊天儿。"], answer: "遇见", options: ["遇见", "经过", "了解", "放学"] },
-  { sentenceParts: ["孩子们 ", " 后就在树下做游戏。"], answer: "放学", options: ["放学", "平时", "段", "可是"] },
-  { sentenceParts: ["孩子们放学后就在树下做 ", "。"], answer: "游戏", options: ["游戏", "关系", "草地", "景点"] },
-  { sentenceParts: ["小区 ", " 买东西也很方便。"], answer: "附近", options: ["附近", "西北", "马路", "河"] },
-  { sentenceParts: ["这本书我已经看了一 ", " 时间了。"], answer: "段", options: ["段", "蓝", "以上", "平时"] },
-  { sentenceParts: ["天空很 ", "，天气很好。"], answer: "蓝", options: ["蓝", "有名", "以上", "可是"] }
-];
-
-// --- UTILS ---
-const speakText = (text) => {
-  if ('speechSynthesis' in window) {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'zh-CN';
-    window.speechSynthesis.speak(utterance);
-  }
-};
-
-const shuffleArray = (array) => {
-  return [...array].sort(() => Math.random() - 0.5);
-};
-
-// --- COMPONENTS ---
-
-const Flashcards = () => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isFlipped, setIsFlipped] = useState(false);
-
-  const word = vocabulary[currentIndex];
-
-  const nextCard = () => {
-    setIsFlipped(false);
-    setTimeout(() => setCurrentIndex((prev) => (prev + 1) % vocabulary.length), 150);
-  };
-
-  const prevCard = () => {
-    setIsFlipped(false);
-    setTimeout(() => setCurrentIndex((prev) => (prev - 1 + vocabulary.length) % vocabulary.length), 150);
-  };
-
-  return (
-    <div className="flex flex-col items-center justify-center space-y-8 mt-10">
-      <div 
-        className="relative w-80 h-96 cursor-pointer"
-        style={{ perspective: "1000px" }}
-        onClick={() => setIsFlipped(!isFlipped)}
-      >
-        <div 
-          className="absolute w-full h-full transition-transform duration-500"
-          style={{ transformStyle: "preserve-3d", transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)" }}
-        >
-          {/* Front */}
-          <div 
-            className="absolute w-full h-full flex flex-col items-center justify-center rounded-3xl shadow-2xl bg-slate-800 border border-white/20" 
-            style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}
-          >
-            <button 
-               onClick={(e) => { e.stopPropagation(); speakText(word.ch); }}
-               className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/30 transition-colors"
-            >
-              <Volume2 size={24} className="text-teal-400" />
-            </button>
-            <span className="text-8xl font-bold text-white drop-shadow-lg">{word.ch}</span>
-          </div>
-
-          {/* Back */}
-          <div 
-            className="absolute w-full h-full flex flex-col items-center justify-center p-6 text-center rounded-3xl shadow-2xl bg-slate-800 border border-teal-500/30" 
-            style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
-          >
-             <button 
-               onClick={(e) => { e.stopPropagation(); speakText(word.ch); }}
-               className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/30 transition-colors"
-            >
-              <Volume2 size={24} className="text-teal-400" />
-            </button>
-            <span className="text-4xl font-semibold text-teal-300 mb-4">{word.pinyin}</span>
-            <span className="text-2xl text-white font-medium mb-2">{word.uz}</span>
-            <span className="text-xl text-slate-300 mb-2">{word.ru}</span>
-            <span className="text-lg text-slate-400 italic">{word.en}</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex items-center space-x-6">
-        <button onClick={prevCard} className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors">
-          <ChevronLeft size={30} />
-        </button>
-        <span className="text-slate-300 font-medium">
-          {currentIndex + 1} / {vocabulary.length}
-        </span>
-        <button onClick={nextCard} className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors">
-          <ChevronRight size={30} />
-        </button>
-      </div>
-    </div>
-  );
-};
-
-const VocabTest = () => {
-  const [questions, setQuestions] = useState([]);
-  const [currentIdx, setCurrentIdx] = useState(0);
-  const [score, setScore] = useState(0);
-  const [showResult, setShowResult] = useState(false);
-  const [selectedOption, setSelectedOption] = useState(null);
-
-  useEffect(() => {
-    generateQuestions();
-  }, []);
-
-  const generateQuestions = () => {
-    const shuffledVocab = shuffleArray([...vocabulary]);
-    const generated = shuffledVocab.map(word => {
-      // Pick 3 random distractors (only Uzbek)
-      let distractors = vocabulary.filter(v => v.ch !== word.ch);
-      distractors = shuffleArray(distractors).slice(0, 3).map(v => v.uz);
-      const options = shuffleArray([...distractors, word.uz]);
-      return { q: word.ch, answer: word.uz, options };
-    });
-    setQuestions(generated);
-    setCurrentIdx(0);
-    setScore(0);
-    setShowResult(false);
-    setSelectedOption(null);
-  };
-
-  const handleOptionClick = (opt) => {
-    if (selectedOption !== null) return;
-    setSelectedOption(opt);
-    
-    if (opt === questions[currentIdx].answer) {
-      setScore(s => s + 1);
-    }
-
-    setTimeout(() => {
-      if (currentIdx < questions.length - 1) {
-        setCurrentIdx(c => c + 1);
-        setSelectedOption(null);
-      } else {
-        setShowResult(true);
-      }
-    }, 1000);
-  };
-
-  if (questions.length === 0) return null;
-
-  if (showResult) {
-    return (
-      <div className="flex flex-col items-center justify-center p-10 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 mt-10 max-w-md mx-auto text-center">
-        <h2 className="text-3xl font-bold text-white mb-4">Test Yakunlandi!</h2>
-        <p className="text-xl text-teal-300 mb-6">Natija: {score} / {questions.length}</p>
-        <button onClick={generateQuestions} className="flex items-center px-6 py-3 bg-gradient-to-r from-teal-500 to-blue-500 rounded-full text-white font-semibold hover:from-teal-400 hover:to-blue-400 transition-all">
-          <RotateCcw className="mr-2" size={20} /> Qayta boshlash
-        </button>
-      </div>
-    );
-  }
-
-  const currentQ = questions[currentIdx];
-
-  return (
-    <div className="max-w-xl mx-auto mt-10">
-      <div className="flex justify-between items-center mb-6 text-slate-300">
-        <span className="font-medium">Savol {currentIdx + 1} / {questions.length}</span>
-        <span className="font-medium text-teal-400">Ball: {score}</span>
-      </div>
-      
-      <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-8 mb-6 flex flex-col items-center shadow-lg">
-        <p className="text-slate-400 mb-2">Xitoycha so'zning to'g'ri tarjimasini tanlang:</p>
-        <h2 className="text-7xl font-bold text-white mb-4 drop-shadow-md">{currentQ.q}</h2>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4">
-        {currentQ.options.map((opt, i) => {
-          let btnClass = "bg-white/5 border border-white/10 hover:bg-white/10 text-white";
-          if (selectedOption !== null) {
-            if (opt === currentQ.answer) btnClass = "bg-green-500/20 border-green-500 text-green-300";
-            else if (opt === selectedOption) btnClass = "bg-red-500/20 border-red-500 text-red-300";
+        const dialogues = [
+          {
+            title: "1-Matn: 同乐 (Tónglè) & 王一雪 (Wáng Yīxuě)",
+            lines: [
+              { speaker: "杨同乐", ch: "您搬到蓝天小区一段时间了，觉得怎么样？", pinyin: "Nín bāndào Lántiān xiǎoqū yí duàn shíjiān le, juéde zěnmeyàng?", uz: "Siz Moviy osmon turar-joyiga ko'chib o'tganingizga biroz vaqt bo'ldi, qanday tuyulyapti?", ru: "Вы переехали в микрорайон 'Голубое небо' некоторое время назад, как вам?", en: "You've moved to Blue Sky community for a period of time, how do you feel?" },
+              { speaker: "王一雪", ch: "小区环境挺好的，附近买东西也很方便，过马路就是超市。", pinyin: "Xiǎoqū huánjìng tǐng hǎo de, fùjìn mǎi dōngxi yě hěn fāngbiàn, guò mǎlù jiùshì chāoshì.", uz: "Majmua muhiti juda yaxshi, yaqin atrofda narsa sotib olish ham qulay, yo'ldan o'tsangiz supermarket bor.", ru: "Обстановка в микрорайоне очень хорошая, поблизости удобно делать покупки, через дорогу супермаркет.", en: "The community environment is quite good, buying things nearby is also convenient, just across the road is a supermarket." },
+              { speaker: "杨同乐", ch: "平时孩子们在哪儿玩？", pinyin: "Píngshí háizimen zài nǎr wán?", uz: "Odatda bolalar qayerda o'ynashadi?", ru: "Обычно где играют дети?", en: "Where do children usually play?" },
+              { speaker: "王一雪", ch: "小区里有很多树，孩子们放学后就在树下做游戏。你想买房子吗？", pinyin: "Xiǎoqū li yǒu hěnduō shù, háizimen fàngxué hòu jiù zài shù xià zuò yóuxì. Nǐ xiǎng mǎi fángzi ma?", uz: "Majmuada ko'p daraxtlar bor, bolalar maktabdan qaytgach, daraxtlar ostida o'ynashadi. Uy sotib olmoqchimisiz?", ru: "В микрорайоне много деревьев, дети после школы играют под деревьями. Вы хотите купить дом?", en: "There are many trees in the community, children play games under the trees after school. Do you want to buy a house?" },
+              { speaker: "杨同乐", ch: "是。我想买一个大房子，让我爸妈过来跟我一起住。", pinyin: "Shì. Wǒ xiǎng mǎi yí gè dà fángzi, ràng wǒ bàmā guòlái gēn wǒ yìqǐ zhù.", uz: "Ha. Katta uy sotib olib, ota-onamni men bilan yashashga chaqirmoqchiman.", ru: "Да. Я хочу купить большой дом, чтобы мои родители переехали жить со мной.", en: "Yes. I want to buy a big house and let my parents come over to live with me." },
+              { speaker: "王一雪", ch: "蓝天小区的老人挺多的，这几年小区根据他们的需要，有了很多变化。", pinyin: "Lántiān xiǎoqū de lǎorén tǐng duō de, zhè jǐ nián xiǎoqū gēnjù tāmen de xūyào, yǒule hěnduō biànhuà.", uz: "Moviy osmon majmuasida qariyalar ko'p, so'nggi yillarda majmua ularning ehtiyojlariga qarab juda o'zgardi.", ru: "В микрорайоне 'Голубое небо' довольно много пожилых людей, за последние несколько лет микрорайон сильно изменился в соответствии с их потребностями.", en: "There are quite a few elderly people in Blue Sky community, in recent years the community has made many changes according to their needs." },
+              { speaker: "杨同乐", ch: "真不错！过几天我去蓝天小区看看。", pinyin: "Zhēn búcuò! Guò jǐ tiān wǒ qù Lántiān xiǎoqū kànkan.", uz: "Juda yaxshi! Bir necha kundan keyin Moviy osmon majmuasini borib ko'raman.", ru: "Действительно неплохо! Через несколько дней я пойду в микрорайон 'Голубое небо' посмотреть.", en: "Really nice! In a few days I'll go take a look at Blue Sky community." }
+            ]
+          },
+          {
+            title: "2-Matn: 同乐 (Tónglè) & 王一雪 (Wáng Yīxuě)",
+            lines: [
+              { speaker: "王一雪", ch: "假期我想去南京旅游，但是我不太了解那里。", pinyin: "Jiàqī wǒ xiǎng qù Nánjīng lǚyóu, dànshì wǒ bú tài liǎojiě nàlǐ.", uz: "Ta'tilda Nankingga sayohat qilmoqchiman, lekin u yerni unchalik bilmayman.", ru: "В отпуск я хочу поехать в Нанкин, но я плохо знаю это место.", en: "During the holiday I want to travel to Nanjing, but I don't know much about it." },
+              { speaker: "杨同乐", ch: "我虽然不是南京人，可是我是在南京上的大学，可以说是半个南京人。", pinyin: "Wǒ suīrán bú shì Nánjīng rén, kěshì wǒ shì zài Nánjīng shàng de dàxué, kěyǐ shuō shì bàngè Nánjīng rén.", uz: "Men Nankinlik bo'lmasam ham, Nankinda universitetda o'qiganman, o'zimni yarim Nankinlik desam bo'ladi.", ru: "Хотя я не из Нанкина, я учился в университете в Нанкине, можно сказать, что я наполовину нанкинец.", en: "Although I'm not from Nanjing, I went to university in Nanjing, you could say I'm half a Nanjing local." },
+              { speaker: "王一雪", ch: "太好了！你快给我介绍一下南京吧。", pinyin: "Tài hǎo le! Nǐ kuài gěi wǒ jièshào yíxià Nánjīng ba.", uz: "Juda yaxshi! Tezda menga Nankinni tanishtirib bering.", ru: "Отлично! Быстрее расскажи мне о Нанкине.", en: "Great! Quickly introduce Nanjing to me." },
+              { speaker: "杨同乐", ch: "南京有两千年以上的历史，有老城、老街，还有很多有名的景点，每年去旅游的游客特别多。", pinyin: "Nánjīng yǒu liǎngqiān nián yǐshàng de lìshǐ, yǒu lǎochéng, lǎojiē, hái yǒu hěnduō yǒumíng de jǐngdiǎn, měinián qù lǚyóu de yóukè tèbié duō.", uz: "Nankin ikki ming yildan ortiq tarixga ega, eski shahar, eski ko'chalar, shuningdek, juda ko'p mashhur joylar bor, har yili sayohatchilar juda ko'p bo'ladi.", ru: "У Нанкина более чем двухтысячелетняя история, есть старый город, старые улицы, а также много известных достопримечательностей, туристов, приезжающих сюда каждый год, особенно много.", en: "Nanjing has a history of more than 2000 years, there's an old city, old streets, and many famous scenic spots, tourists who go there every year are especially numerous." },
+              { speaker: "王一雪", ch: "除了这些以外，你再告诉我一些外地人不知道的地方。", pinyin: "Chúle zhèxiē yǐwài, nǐ zài gàosu wǒ yìxiē wàidì rén bù zhīdào de dìfang.", uz: "Bulardan tashqari, menga begona odamlar bilmaydigan ba'zi joylarni ayting.", ru: "Помимо этого, расскажи мне еще о некоторых местах, которые не знают приезжие.", en: "Besides these, tell me some places that outsiders don't know about." },
+              { speaker: "杨同乐", ch: "那太多了，我得一点儿一点儿给您讲。", pinyin: "Nà tài duō le, wǒ děi yìdiǎnr yìdiǎnr gěi nín jiǎng.", uz: "Ular juda ko'p, men sizga oz-ozdan aytib berishim kerak.", ru: "Их слишком много, я должен рассказывать вам понемногу.", en: "There are too many, I have to tell you little by little." },
+              { speaker: "王一雪", ch: "行，下班后我请你吃晚饭，咱们边吃边聊。", pinyin: "Xíng, xiàbān hòu wǒ qǐng nǐ chī wǎnfàn, zánmen biān chī biān liáo.", uz: "Yaxshi, ishdan keyin sizni kechki ovqatga taklif qilaman, ovqatlanib suhbatlashamiz.", ru: "Хорошо, после работы я угощу тебя ужином, поедим и поболтаем.", en: "Okay, after work I'll treat you to dinner, we can eat and chat." }
+            ]
+          },
+          {
+            title: "3-Matn: 王一雪 (Wáng Yīxuě) & 刘小明 (Liú Xiǎomíng)",
+            lines: [
+              { speaker: "王一雪", ch: "小明，中国有一条大河，它的名字跟颜色有关系，你知道是什么河吗？", pinyin: "Xiǎomíng, Zhōngguó yǒu yì tiáo dà hé, tā de míngzi gēn yánsè yǒu guānxi, nǐ zhīdào shì shénme hé ma?", uz: "Syaomin, Xitoyda bir katta daryo bor, uning nomi rang bilan bog'liq, qanday daryoligini bilasizmi?", ru: "Сяомин, в Китае есть большая река, ее название связано с цветом, ты знаешь, что это за река?", en: "Xiaoming, China has a big river, its name is related to a color, do you know what river it is?" },
+              { speaker: "刘小明", ch: "我知道，是黄河！", pinyin: "Wǒ zhīdào, shì Huáng Hé!", uz: "Bilaman, bu Xuanxe daryosi!", ru: "Я знаю, это Хуанхэ!", en: "I know, it's the Yellow River!" },
+              { speaker: "王一雪", ch: "你说对了。我再问问你，你知道它为什么叫黄河吗？", pinyin: "Nǐ shuō duì le. Wǒ zài wènwen nǐ, nǐ zhīdào tā wèishénme jiào Huáng Hé ma?", uz: "To'g'ri aytdingiz. Yana so'rayman, nima uchun u Xuanxe (Sariq daryo) deb atalishini bilasizmi?", ru: "Ты прав. Я еще спрошу тебя, ты знаешь, почему она называется Хуанхэ?", en: "You're right. Let me ask you again, do you know why it's called the Yellow River?" },
+              { speaker: "刘小明", ch: "因为河水看起来是黄色的，所以叫这个名字。黄河是中国最长的河吗？", pinyin: "Yīnwèi héshuǐ kàn qǐlái shì huángsè de, suǒyǐ jiào zhège míngzi. Huáng Hé shì Zhōngguó zuì cháng de hé ma?", uz: "Chunki daryo suvi sariq rangda ko'rinadi, shuning uchun shunday ataladi. Xuanxe Xitoydagi eng uzun daryomi?", ru: "Потому что вода в реке кажется желтой, поэтому она так называется. Хуанхэ - самая длинная река в Китае?", en: "Because the river water looks yellow, so it has this name. Is the Yellow River the longest river in China?" },
+              { speaker: "王一雪", ch: "不是。黄河虽然不是最长的河，可是在历史上很重要。", pinyin: "Bú shì. Huáng Hé suīrán bú shì zuì cháng de hé, kěshì zài lìshǐ shàng hěn zhòngyào.", uz: "Yo'q. Xuanxe garchi eng uzun daryo bo'lmasa ham, tarixda juda muhim ahamiyatga ega.", ru: "Нет. Хотя Хуанхэ не самая длинная река, но в истории она очень важна.", en: "No. Although the Yellow River is not the longest river, it is very important in history." },
+              { speaker: "刘小明", ch: "这个我知道。很久以前，很多中国人都住在黄河边上。", pinyin: "Zhège wǒ zhīdào. Hěn jiǔ yǐqián, hěnduō Zhōngguó rén dōu zhù zài Huáng Hé biān shàng.", uz: "Buni bilaman. Uzoq o'tmishda ko'plab xitoyliklar Xuanxe daryosi bo'yida yashashgan.", ru: "Это я знаю. Давным-давно многие китайцы жили на берегах Хуанхэ.", en: "I know this. A long time ago, many Chinese people lived along the banks of the Yellow River." },
+              { speaker: "王一雪", ch: "对。在我们中国人看来，黄河像妈妈一样，养了我们几千年。", pinyin: "Duì. Zài wǒmen Zhōngguó rén kànlái, Huáng Hé xiàng māma yíyàng, yǎng le wǒmen jǐqiān nián.", uz: "To'g'ri. Biz xitoyliklar nazarda, Xuanxe daryosi onamizga o'xshaydi, bizni ming yillar davomida boqib kelgan.", ru: "Да. На наш, китайцев, взгляд, Хуанхэ как мать, кормила нас тысячелетиями.", en: "Right. In the eyes of us Chinese, the Yellow River is like a mother, raising us for thousands of years." }
+            ]
+          },
+          {
+            title: "4-Matn: 王一雪's Diary",
+            lines: [
+              { speaker: "日记", ch: "我小时候住在北京的西北边，有一条非常有名的河经过那里。", pinyin: "Wǒ xiǎoshíhou zhù zài Běijīng de xīběi biān, yǒu yì tiáo fēicháng yǒumíng de hé jīngguò nàlǐ.", uz: "Bolaligimda Pekinning shimoli-g'arbida yashardim, u yerdan juda mashhur bir daryo o'tardi.", ru: "В детстве я жил на северо-западе Пекина, там протекала очень известная река.", en: "When I was young I lived in the northwest of Beijing, a very famous river passed by there." },
+              { speaker: "日记", ch: "我家就住在河边。那里有高高的大树和绿绿的草地。", pinyin: "Wǒ jiā jiù zhù zài hébiān. Nàlǐ yǒu gāogāo de dàshù hé lǜlǜ de cǎodì.", uz: "Uyimiz aynan daryo bo'yida edi. U yerda baland daraxtlar va yam-yashil o'tloqlar bor edi.", ru: "Мой дом находился прямо у реки. Там были высокие деревья и зеленые луга.", en: "My house was right by the river. There were tall trees and green meadows there." },
+              { speaker: "日记", ch: "春天，河边的花都开了，看起来特别漂亮。还记得小时候，一到夏天我就去河里游泳。", pinyin: "Chūntiān, hébiān de huā dōu kāi le, kàn qǐlái tèbié piàoliang. Hái jìde xiǎoshíhou, yídào xiàtiān wǒ jiù qù héli yóuyǒng.", uz: "Bahorda daryo bo'yidagi gullar ochilardi, juda chiroyli ko'rinardi. Bolaligim esimda, yoz kelishi bilan daryoga cho'milishga borardim.", ru: "Весной у реки распускались все цветы, выглядело это особенно красиво. Еще помню в детстве, как только наступало лето, я шел купаться в реке.", en: "In spring, all the flowers by the river bloomed, it looked especially beautiful. Still remember when I was young, as soon as summer came I would go swim in the river." },
+              { speaker: "日记", ch: "长大以后，遇到什么不开心的事情，我就去河边的树下坐着，听听鸟叫，看看河水，跟遇见的朋友聊聊天儿，难过的事情不一会儿就忘了。那是我最喜欢的地方。", pinyin: "Zhǎngdà yǐhòu, yùdào shénme bù kāixīn de shìqing, wǒ jiù qù hébiān de shù xià zuòzhe, tīngting niǎo jiào, kànkan héshuǐ, gēn yùjiàn de péngyou liáoliao tiānr, nánguò de shìqing bù yíhuìr jiù wàng le. Nà shì wǒ zuì xǐhuan de dìfang.", uz: "Katta bo'lganimdan keyin, xafa qiladigan biron voqea yuz bersa, daryo bo'yidagi daraxt ostiga borib o'tiraman, qushlar sayrashini eshitaman, daryo suviga qarayman, uchratgan do'stlarim bilan suhbatlashaman, va qiyin narsalar bir pasda yoddan ko'tariladi. Bu mening eng sevimli joyim.", ru: "Повзрослев, когда случалось что-то неприятное, я шел посидеть под деревом у реки, послушать пение птиц, посмотреть на воду, поболтать со встреченными друзьями, и грустные вещи вскоре забывались. Это мое любимое место.", en: "After growing up, whenever I encountered something unhappy, I would go sit under the tree by the river, listen to the birds, look at the river water, chat with friends I met, and sad things would soon be forgotten. That is my favorite place." }
+            ]
           }
+        ];
+
+        const grammarPoints = [
+          {
+            title: "1. 根据 (gēnjù) - ga ko'ra / asosida",
+            ch_desc: "介词“根据”在句子中引出事情的依据或理由。",
+            desc: "Предлог '根据' вводит основание или причину действия в предложении.",
+            uz_desc: "'根据' predlogi harakatning asosi yoki sababini bildiradi.",
+            examples: [
+              { ch: "这几年小区根据他们的需要，有了很多变化。", py: "Zhè jǐ nián xiǎoqū gēnjù tāmen de xūyào, yǒule hěnduō biànhuà.", uz: "Shu yillarda turar-joy majmuasi ularning ehtiyojlariga ko'ra ko'p o'zgarishlarga duch keldi." },
+              { ch: "根据要求，我们必须参加明天的会议。", py: "Gēnjù yāoqiú, wǒmen bìxū cānjiā míngtiān de huìyì.", uz: "Talabga ko'ra, biz ertangi majlisda qatnashishimiz shart." },
+              { ch: "老师根据每个学生的兴趣，选择了不一样的书。", py: "Lǎoshī gēnjù měigè xuéshēng de xìngqù, xuǎnzé le bù yíyàng de shū.", uz: "O'qituvchi har bir talabaning qiziqishiga ko'ra turli xil kitoblarni tanladi." }
+            ]
+          },
+          {
+            title: "2. 数词+量词+数词+量词 (Miqdoriy takrorlash)",
+            ch_desc: "数量短语可以重叠，重叠后可作状语，一般表示动作的方式，有形象化的作用。",
+            desc: "Количественно-именные словосочетания могут дублироваться и использоваться в качестве обстоятельства образа действия.",
+            uz_desc: "Miqdor va hisob so'zlari takrorlanib kelib, harakatning holatini bildiradi.",
+            examples: [
+              { ch: "我得一点儿一点儿给您讲。", py: "Wǒ děi yìdiǎnr yìdiǎnr gěi nín jiǎng.", uz: "Men sizga oz-ozdan aytib berishim kerak." },
+              { ch: "学生们的汉语水平一天一天地提高了。", py: "Xuéshēngmen de Hànyǔ shuǐpíng yìtiān yìtiān de tígāo le.", uz: "Talabalarning xitoy tili darajasi kundan-kunga oshib bordi." },
+              { ch: "他们两个两个地走进去了。", py: "Tāmen liǎnggè liǎnggè de zǒujìn qù le.", uz: "Ular ikkitadan bo'lib kirib ketishdi." }
+            ]
+          },
+          {
+            title: "3. 在……看来 (zài...kànlái) - ... nazarda / fikriga ko'ra",
+            ch_desc: "固定短语“在……看来”表示个人或某个群体的观点。",
+            desc: "Устойчивая фраза '在……看来' используется для выражения точки зрения человека পক্ষের.",
+            uz_desc: "'在……看来' iborasi bir kishi yoki guruhning fikrini, nazariini bildirish uchun ishlatiladi.",
+            examples: [
+              { ch: "在我们中国人看来，黄河像妈妈一样，养了我们几千年。", py: "Zài wǒmen Zhōngguó rén kànlái, Huáng Hé xiàng māma yíyàng, yǎng le wǒmen jǐqiān nián.", uz: "Biz xitoyliklar nazarda, Xuanxe daryosi ona kabi bo'lib, bizni ming yillar davomida boqdi." },
+              { ch: "在同事们看来，她工作非常认真。", py: "Zài tóngshìmen kànlái, tā gōngzuò fēicháng rènzhēn.", uz: "Kasbdoshlar nazarda, u ishga juda jiddiy yondashadi." },
+              { ch: "在我看来，每天读书是一种很好的习惯。", py: "Zài wǒ kànlái, měitiān dúshū shì yì zhǒng hěn hǎo de xíguàn.", uz: "Mening fikrimcha, har kuni kitob o'qish juda yaxshi odat." }
+            ]
+          },
+          {
+            title: "4. 不一会儿 (bù yíhuìr) - birpasda / birozdan so'ng",
+            ch_desc: "固定短语“不一会儿”表示很短的时间，在句中作状语，多用于口语。",
+            desc: "Означает 'через короткое время'. Выполняет функцию обстоятельства.",
+            uz_desc: "Qisqa vaqt o'tgach, bir zumda degan ma'noni bildiradi.",
+            examples: [
+              { ch: "难过的事情不一会儿就忘了。", py: "Nánguò de shìqing bù yíhuìr jiù wàng le.", uz: "Qayg'uli narsalar birozdan keyin unutiladi." },
+              { ch: "不一会儿，张校长就来了。", py: "Bù yíhuìr, Zhāng xiàozhǎng jiù lái le.", uz: "Birozdan so'ng, direktor Chjan keldi." },
+              { ch: "两个小时看起来长，但是不一会儿就过去了。", py: "Liǎng gè xiǎoshí kàn qǐlái cháng, dànshì bù yíhuìr jiù guòqù le.", uz: "Ikki soat uzoq ko'rinadi, lekin birpasda o'tib ketdi." }
+            ]
+          }
+        ];
+
+        const grammarTestQuestions = [
+          { q: "难过的事情____就忘了。", options: ["不一会儿", "在我看来", "根据", "可是"], answer: "不一会儿" },
+          { q: "____他们的需要，小区有了很多变化。", options: ["根据", "一边", "经过", "遇见"], answer: "根据" },
+          { q: "____，每天读书是一种很好的习惯。", options: ["在我看来", "不一会儿", "可是", "以上"], answer: "在我看来" },
+          { q: "那太多了，我得____给您讲。", options: ["一点儿一点儿", "不一会儿", "根据", "在看来"], answer: "一点儿一点儿" },
+          { q: "大家____走进了会议室。", options: ["一个一个地", "一会儿一会儿", "了解了解", "经过经过"], answer: "一个一个地" },
+          { q: "老师会____，给每个学生不同的作业。", options: ["根据学生的水平", "一点儿一点儿", "不一会儿", "经过那里"], answer: "根据学生的水平" },
+          { q: "____，黄河像妈妈一样。", options: ["在我们看来", "不一会儿", "根据", "可是"], answer: "在我们看来" },
+          { q: "只有几道题，他____就做完了。", options: ["不一会儿", "在我看来", "根据", "以上"], answer: "不一会儿" }
+        ];
+
+        const fillInBlanksQuestions = [
+          { sentenceParts: ["过 ", " 就是超市。"], answer: "马路", options: ["马路", "老人", "河", "外地"] },
+          { sentenceParts: ["假期我想去南京旅游，但是我不太 ", " 那里。"], answer: "了解", options: ["了解", "可是", "经过", "养"] },
+          { sentenceParts: ["南京有两千年 ", " 的历史。"], answer: "以上", options: ["以上", "平时", "游戏", "西北"] },
+          { sentenceParts: ["每年去旅游的 ", " 特别多。"], answer: "游客", options: ["游客", "老人", "草地", "马路"] },
+          { sentenceParts: ["你再告诉我一些 ", " 人不知道的地方。"], answer: "外地", options: ["外地", "附近", "南京", "游戏"] },
+          { sentenceParts: ["行，下班后咱们边吃边 ", "。"], answer: "聊", options: ["聊", "遇见", "了解", "养"] },
+          { sentenceParts: ["中国有一条大河，它的名字跟颜色有 ", "。"], answer: "关系", options: ["关系", "段", "景点", "草地"] },
+          { sentenceParts: ["我家就住在 ", " 边。"], answer: "河", options: ["河", "蓝", "外地", "西北"] },
+          { sentenceParts: ["黄河像妈妈一样，", " 了我们几千年。"], answer: "养", options: ["养", "放学", "经过", "遇见"] },
+          { sentenceParts: ["有一条非常 ", " 的河经过那里。"], answer: "有名", options: ["有名", "蓝", "老人", "外地"] },
+          { sentenceParts: ["那里有高高的大树和绿绿的 ", "。"], answer: "草地", options: ["草地", "游客", "景点", "关系"] },
+          { sentenceParts: ["去河边的树下坐着，跟 ", " 的朋友聊聊天儿。"], answer: "遇见", options: ["遇见", "经过", "了解", "放学"] },
+          { sentenceParts: ["孩子们 ", " 后就在树下做游戏。"], answer: "放学", options: ["放学", "平时", "段", "可是"] },
+          { sentenceParts: ["孩子们放学后就在树下做 ", "。"], answer: "游戏", options: ["游戏", "关系", "草地", "景点"] },
+          { sentenceParts: ["小区 ", " 买东西也很方便。"], answer: "附近", options: ["附近", "西北", "马路", "河"] },
+          { sentenceParts: ["这本书我已经看了一 ", " 时间了。"], answer: "段", options: ["段", "蓝", "以上", "平时"] },
+          { sentenceParts: ["天空很 ", "，天气很好。"], answer: "蓝", options: ["蓝", "有名", "以上", "可是"] }
+        ];
+
+        // --- UTILS ---
+        const speakText = (text) => {
+          if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-CN';
+            window.speechSynthesis.speak(utterance);
+          }
+        };
+
+        const shuffleArray = (array) => {
+          return [...array].sort(() => Math.random() - 0.5);
+        };
+
+        // --- COMPONENTS ---
+        const Flashcards = () => {
+          const [currentIndex, setCurrentIndex] = useState(0);
+          const [isFlipped, setIsFlipped] = useState(false);
+
+          const word = vocabulary[currentIndex];
+
+          const nextCard = () => {
+            setIsFlipped(false);
+            setTimeout(() => setCurrentIndex((prev) => (prev + 1) % vocabulary.length), 150);
+          };
+
+          const prevCard = () => {
+            setIsFlipped(false);
+            setTimeout(() => setCurrentIndex((prev) => (prev - 1 + vocabulary.length) % vocabulary.length), 150);
+          };
+
           return (
-            <button 
-              key={i}
-              onClick={() => handleOptionClick(opt)}
-              disabled={selectedOption !== null}
-              className={`p-4 rounded-xl text-lg font-medium transition-all ${btnClass}`}
-            >
-              {opt}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
-const Dialogues = () => {
-  return (
-    <div className="max-w-4xl mx-auto mt-10 space-y-12">
-      {dialogues.map((dialogue, dIdx) => (
-        <div key={dIdx} className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden shadow-lg">
-          <div className="bg-gradient-to-r from-teal-900/50 to-blue-900/50 p-4 border-b border-white/10">
-            <h3 className="text-xl font-bold text-teal-300">{dialogue.title}</h3>
-          </div>
-          <div className="p-6 space-y-6">
-            {dialogue.lines.map((line, lIdx) => (
-              <div key={lIdx} className="flex flex-col sm:flex-row gap-4 border-b border-white/5 pb-6 last:border-0 last:pb-0">
-                <div className="min-w-[100px] pt-1">
-                  <span className="inline-block px-3 py-1 bg-white/10 text-teal-200 text-sm rounded-lg whitespace-nowrap font-medium">
-                    {line.speaker}
-                  </span>
-                </div>
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-start justify-between group">
-                    <div>
-                      <p className="text-2xl text-white font-medium leading-relaxed">{line.ch}</p>
-                      <p className="text-lg text-teal-400 font-medium mb-2">{line.pinyin}</p>
-                    </div>
-                    <button 
-                      onClick={() => speakText(line.ch)}
-                      className="p-2 ml-4 rounded-full bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/20 flex-shrink-0"
-                    >
-                      <Volume2 size={20} className="text-slate-300" />
-                    </button>
-                  </div>
-                  <p className="text-slate-300">{line.uz}</p>
-                  <p className="text-slate-400 text-sm">{line.ru}</p>
-                  <p className="text-slate-500 text-sm italic">{line.en}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-const Grammar = () => {
-  return (
-    <div className="max-w-3xl mx-auto mt-10 space-y-8">
-      {grammarPoints.map((point, idx) => (
-        <div key={idx} className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 shadow-lg">
-          <h3 className="text-2xl font-bold text-teal-400 mb-3">{point.title}</h3>
-          <p className="text-white text-lg mb-2 font-medium">{point.ch_desc}</p>
-          <p className="text-slate-300 mb-1">{point.uz_desc}</p>
-          <p className="text-slate-400 text-sm mb-6">{point.desc}</p>
-          
-          <div className="space-y-4">
-            {point.examples.map((ex, i) => (
-              <div key={i} className="bg-white/5 p-4 rounded-xl border border-white/5 flex items-start justify-between group">
-                <div>
-                  <p className="text-lg text-white font-medium">{ex.ch}</p>
-                  <p className="text-teal-300 mb-1">{ex.py}</p>
-                  <p className="text-slate-300 text-sm">{ex.uz}</p>
-                </div>
-                 <button 
-                    onClick={() => speakText(ex.ch)}
-                    className="p-2 ml-4 rounded-full bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/20 flex-shrink-0"
+            <div className="flex flex-col items-center justify-center space-y-8 mt-10">
+              <div 
+                className="relative w-80 h-96 cursor-pointer"
+                style={{ perspective: "1000px" }}
+                onClick={() => setIsFlipped(!isFlipped)}
+              >
+                <div 
+                  className="absolute w-full h-full transition-transform duration-500"
+                  style={{ transformStyle: "preserve-3d", transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)" }}
+                >
+                  {/* Front */}
+                  <div 
+                    className="absolute w-full h-full flex flex-col items-center justify-center rounded-3xl shadow-2xl bg-slate-800 border border-white/20" 
+                    style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}
                   >
-                    <Volume2 size={18} className="text-slate-300" />
-                  </button>
+                    <button 
+                       onClick={(e) => { e.stopPropagation(); speakText(word.ch); }}
+                       className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/30 transition-colors"
+                    >
+                      <Volume2 size={24} className="text-teal-400" />
+                    </button>
+                    <span className="text-8xl font-bold text-white drop-shadow-lg">{word.ch}</span>
+                  </div>
+
+                  {/* Back */}
+                  <div 
+                    className="absolute w-full h-full flex flex-col items-center justify-center p-6 text-center rounded-3xl shadow-2xl bg-slate-800 border border-teal-500/30" 
+                    style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+                  >
+                     <button 
+                       onClick={(e) => { e.stopPropagation(); speakText(word.ch); }}
+                       className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/30 transition-colors"
+                    >
+                      <Volume2 size={24} className="text-teal-400" />
+                    </button>
+                    <span className="text-4xl font-semibold text-teal-300 mb-4">{word.pinyin}</span>
+                    <span className="text-2xl text-white font-medium mb-2">{word.uz}</span>
+                    <span className="text-xl text-slate-300 mb-2">{word.ru}</span>
+                    <span className="text-lg text-slate-400 italic">{word.en}</span>
+                  </div>
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
 
-const GrammarTest = () => {
-  const [currentIdx, setCurrentIdx] = useState(0);
-  const [score, setScore] = useState(0);
-  const [showResult, setShowResult] = useState(false);
-  const [selectedOption, setSelectedOption] = useState(null);
-
-  const handleOptionClick = (opt) => {
-    if (selectedOption !== null) return;
-    setSelectedOption(opt);
-    
-    if (opt === grammarTestQuestions[currentIdx].answer) {
-      setScore(s => s + 1);
-    }
-
-    setTimeout(() => {
-      if (currentIdx < grammarTestQuestions.length - 1) {
-        setCurrentIdx(c => c + 1);
-        setSelectedOption(null);
-      } else {
-        setShowResult(true);
-      }
-    }, 1200);
-  };
-
-  const resetTest = () => {
-    setCurrentIdx(0);
-    setScore(0);
-    setShowResult(false);
-    setSelectedOption(null);
-  }
-
-  if (showResult) {
-    return (
-      <div className="flex flex-col items-center justify-center p-10 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 mt-10 max-w-md mx-auto text-center">
-        <h2 className="text-3xl font-bold text-white mb-4">语法测试完成</h2>
-        <p className="text-xl text-teal-300 mb-6">得分: {score} / {grammarTestQuestions.length}</p>
-        <button onClick={resetTest} className="flex items-center px-6 py-3 bg-gradient-to-r from-teal-500 to-blue-500 rounded-full text-white font-semibold hover:from-teal-400 hover:to-blue-400 transition-all">
-          <RotateCcw className="mr-2" size={20} /> 再做一次
-        </button>
-      </div>
-    );
-  }
-
-  const currentQ = grammarTestQuestions[currentIdx];
-
-  return (
-    <div className="max-w-xl mx-auto mt-10">
-      <div className="flex justify-between items-center mb-6 text-slate-300">
-        <span className="font-medium">题 {currentIdx + 1} / {grammarTestQuestions.length}</span>
-        <span className="font-medium text-teal-400">得分: {score}</span>
-      </div>
-      
-      <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-8 mb-6 flex flex-col items-center shadow-lg text-center">
-        <h2 className="text-3xl font-bold text-white tracking-wider">{currentQ.q}</h2>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {currentQ.options.map((opt, i) => {
-          let btnClass = "bg-white/5 border border-white/10 hover:bg-white/10 text-white";
-          if (selectedOption !== null) {
-            if (opt === currentQ.answer) btnClass = "bg-green-500/20 border-green-500 text-green-300";
-            else if (opt === selectedOption) btnClass = "bg-red-500/20 border-red-500 text-red-300";
-          }
-          return (
-            <button 
-              key={i}
-              onClick={() => handleOptionClick(opt)}
-              disabled={selectedOption !== null}
-              className={`p-4 rounded-xl text-xl font-medium transition-all ${btnClass}`}
-            >
-              {opt}
-            </button>
+              <div className="flex items-center space-x-6">
+                <button onClick={prevCard} className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors">
+                  <ChevronLeft size={30} />
+                </button>
+                <span className="text-slate-300 font-medium">
+                  {currentIndex + 1} / {vocabulary.length}
+                </span>
+                <button onClick={nextCard} className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors">
+                  <ChevronRight size={30} />
+                </button>
+              </div>
+            </div>
           );
-        })}
-      </div>
-    </div>
-  );
-};
+        };
 
-const FillInBlanks = () => {
-  const [questions, setQuestions] = useState([]);
-  const [currentIdx, setCurrentIdx] = useState(0);
-  const [score, setScore] = useState(0);
-  const [showResult, setShowResult] = useState(false);
-  const [selectedOption, setSelectedOption] = useState(null);
+        const VocabTest = () => {
+          const [questions, setQuestions] = useState([]);
+          const [currentIdx, setCurrentIdx] = useState(0);
+          const [score, setScore] = useState(0);
+          const [showResult, setShowResult] = useState(false);
+          const [selectedOption, setSelectedOption] = useState(null);
 
-  useEffect(() => {
-    // Randomize the order
-    setQuestions(shuffleArray([...fillInBlanksQuestions]));
-  }, []);
+          useEffect(() => {
+            generateQuestions();
+          }, []);
 
-  const handleOptionClick = (opt) => {
-    if (selectedOption !== null) return;
-    setSelectedOption(opt);
-    
-    if (opt === questions[currentIdx].answer) {
-      setScore(s => s + 1);
-    }
+          const generateQuestions = () => {
+            const shuffledVocab = shuffleArray([...vocabulary]);
+            const generated = shuffledVocab.map(word => {
+              let distractors = vocabulary.filter(v => v.ch !== word.ch);
+              distractors = shuffleArray(distractors).slice(0, 3).map(v => v.uz);
+              const options = shuffleArray([...distractors, word.uz]);
+              return { q: word.ch, answer: word.uz, options };
+            });
+            setQuestions(generated);
+            setCurrentIdx(0);
+            setScore(0);
+            setShowResult(false);
+            setSelectedOption(null);
+          };
 
-    setTimeout(() => {
-      if (currentIdx < questions.length - 1) {
-        setCurrentIdx(c => c + 1);
-        setSelectedOption(null);
-      } else {
-        setShowResult(true);
-      }
-    }, 1200);
-  };
+          const handleOptionClick = (opt) => {
+            if (selectedOption !== null) return;
+            setSelectedOption(opt);
+            
+            if (opt === questions[currentIdx].answer) {
+              setScore(s => s + 1);
+            }
 
-  const resetTest = () => {
-    setQuestions(shuffleArray([...fillInBlanksQuestions]));
-    setCurrentIdx(0);
-    setScore(0);
-    setShowResult(false);
-    setSelectedOption(null);
-  };
+            setTimeout(() => {
+              if (currentIdx < questions.length - 1) {
+                setCurrentIdx(c => c + 1);
+                setSelectedOption(null);
+              } else {
+                setShowResult(true);
+              }
+            }, 1000);
+          };
 
-  if (questions.length === 0) return null;
+          if (questions.length === 0) return null;
 
-  if (showResult) {
-    return (
-      <div className="flex flex-col items-center justify-center p-10 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 mt-10 max-w-md mx-auto text-center">
-        <h2 className="text-3xl font-bold text-white mb-4">Test Yakunlandi!</h2>
-        <p className="text-xl text-teal-300 mb-6">Natija: {score} / {questions.length}</p>
-        <button onClick={resetTest} className="flex items-center px-6 py-3 bg-gradient-to-r from-teal-500 to-blue-500 rounded-full text-white font-semibold hover:from-teal-400 hover:to-blue-400 transition-all">
-          <RotateCcw className="mr-2" size={20} /> Qayta boshlash
-        </button>
-      </div>
-    );
-  }
-
-  const currentQ = questions[currentIdx];
-  const blankDisplay = selectedOption !== null 
-    ? <span className={`px-4 py-1 mx-2 rounded border-b-2 ${selectedOption === currentQ.answer ? 'text-green-400 border-green-400' : 'text-red-400 border-red-400'}`}>{selectedOption}</span> 
-    : <span className="px-6 py-1 mx-2 border-b-2 border-slate-400 text-transparent">____</span>;
-
-  return (
-    <div className="max-w-2xl mx-auto mt-10">
-      <div className="flex justify-between items-center mb-6 text-slate-300">
-        <span className="font-medium">Savol {currentIdx + 1} / {questions.length}</span>
-        <span className="font-medium text-teal-400">Ball: {score}</span>
-      </div>
-      
-      <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-10 mb-8 flex flex-col items-center shadow-lg text-center">
-        <h2 className="text-3xl leading-loose font-medium text-white">
-          {currentQ.sentenceParts[0]}
-          {blankDisplay}
-          {currentQ.sentenceParts[1]}
-        </h2>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        {currentQ.options.map((opt, i) => {
-          let btnClass = "bg-white/5 border border-white/10 hover:bg-white/10 text-white";
-          if (selectedOption !== null) {
-            if (opt === currentQ.answer) btnClass = "bg-green-500/20 border-green-500 text-green-300";
-            else if (opt === selectedOption) btnClass = "bg-red-500/20 border-red-500 text-red-300";
+          if (showResult) {
+            return (
+              <div className="flex flex-col items-center justify-center p-10 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 mt-10 max-w-md mx-auto text-center">
+                <h2 className="text-3xl font-bold text-white mb-4">Test Yakunlandi!</h2>
+                <p className="text-xl text-teal-300 mb-6">Natija: {score} / {questions.length}</p>
+                <button onClick={generateQuestions} className="flex items-center px-6 py-3 bg-gradient-to-r from-teal-500 to-blue-500 rounded-full text-white font-semibold hover:from-teal-400 hover:to-blue-400 transition-all">
+                  <RotateCcw className="mr-2" size={20} /> Qayta boshlash
+                </button>
+              </div>
+            );
           }
+
+          const currentQ = questions[currentIdx];
+
           return (
-            <button 
-              key={i}
-              onClick={() => handleOptionClick(opt)}
-              disabled={selectedOption !== null}
-              className={`p-4 rounded-xl text-2xl font-bold transition-all ${btnClass}`}
-            >
-              {opt}
-            </button>
+            <div className="max-w-xl mx-auto mt-10">
+              <div className="flex justify-between items-center mb-6 text-slate-300">
+                <span className="font-medium">Savol {currentIdx + 1} / {questions.length}</span>
+                <span className="font-medium text-teal-400">Ball: {score}</span>
+              </div>
+              
+              <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-8 mb-6 flex flex-col items-center shadow-lg">
+                <p className="text-slate-400 mb-2">Xitoycha so'zning to'g'ri tarjimasini tanlang:</p>
+                <h2 className="text-7xl font-bold text-white mb-4 drop-shadow-md">{currentQ.q}</h2>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                {currentQ.options.map((opt, i) => {
+                  let btnClass = "bg-white/5 border border-white/10 hover:bg-white/10 text-white";
+                  if (selectedOption !== null) {
+                    if (opt === currentQ.answer) btnClass = "bg-green-500/20 border-green-500 text-green-300";
+                    else if (opt === selectedOption) btnClass = "bg-red-500/20 border-red-500 text-red-300";
+                  }
+                  return (
+                    <button 
+                      key={i}
+                      onClick={() => handleOptionClick(opt)}
+                      disabled={selectedOption !== null}
+                      className={`p-4 rounded-xl text-lg font-medium transition-all ${btnClass}`}
+                    >
+                      {opt}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           );
-        })}
-      </div>
-    </div>
-  );
-};
+        };
 
-export default function App() {
-  const [activeTab, setActiveTab] = useState('flashcards');
+        const Dialogues = () => {
+          return (
+            <div className="max-w-4xl mx-auto mt-10 space-y-12">
+              {dialogues.map((dialogue, dIdx) => (
+                <div key={dIdx} className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden shadow-lg">
+                  <div className="bg-gradient-to-r from-teal-900/50 to-blue-900/50 p-4 border-b border-white/10">
+                    <h3 className="text-xl font-bold text-teal-300">{dialogue.title}</h3>
+                  </div>
+                  <div className="p-6 space-y-6">
+                    {dialogue.lines.map((line, lIdx) => (
+                      <div key={lIdx} className="flex flex-col sm:flex-row gap-4 border-b border-white/5 pb-6 last:border-0 last:pb-0">
+                        <div className="min-w-[100px] pt-1">
+                          <span className="inline-block px-3 py-1 bg-white/10 text-teal-200 text-sm rounded-lg whitespace-nowrap font-medium">
+                            {line.speaker}
+                          </span>
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          <div className="flex items-start justify-between group">
+                            <div>
+                              <p className="text-2xl text-white font-medium leading-relaxed">{line.ch}</p>
+                              <p className="text-lg text-teal-400 font-medium mb-2">{line.pinyin}</p>
+                            </div>
+                            <button 
+                              onClick={() => speakText(line.ch)}
+                              className="p-2 ml-4 rounded-full bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/20 flex-shrink-0"
+                            >
+                              <Volume2 size={20} className="text-slate-300" />
+                            </button>
+                          </div>
+                          <p className="text-slate-300">{line.uz}</p>
+                          <p className="text-slate-400 text-sm">{line.ru}</p>
+                          <p className="text-slate-500 text-sm italic">{line.en}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        };
 
-  const tabs = [
-    { id: 'flashcards', label: "Fleshkartalar" },
-    { id: 'vocabTest', label: "Lug'at testi" },
-    { id: 'dialogues', label: "Muloqot" },
-    { id: 'grammar', label: "Grammatika" },
-    { id: 'grammarTest', label: "Grammatika testi" },
-    { id: 'fillBlanks', label: "So'zlarni to'ldirish" },
-  ];
+        const Grammar = () => {
+          return (
+            <div className="max-w-3xl mx-auto mt-10 space-y-8">
+              {grammarPoints.map((point, idx) => (
+                <div key={idx} className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 shadow-lg">
+                  <h3 className="text-2xl font-bold text-teal-400 mb-3">{point.title}</h3>
+                  <p className="text-white text-lg mb-2 font-medium">{point.ch_desc}</p>
+                  <p className="text-slate-300 mb-1">{point.uz_desc}</p>
+                  <p className="text-slate-400 text-sm mb-6">{point.desc}</p>
+                  
+                  <div className="space-y-4">
+                    {point.examples.map((ex, i) => (
+                      <div key={i} className="bg-white/5 p-4 rounded-xl border border-white/5 flex items-start justify-between group">
+                        <div>
+                          <p className="text-lg text-white font-medium">{ex.ch}</p>
+                          <p className="text-teal-300 mb-1">{ex.py}</p>
+                          <p className="text-slate-300 text-sm">{ex.uz}</p>
+                        </div>
+                         <button 
+                            onClick={() => speakText(ex.ch)}
+                            className="p-2 ml-4 rounded-full bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/20 flex-shrink-0"
+                          >
+                            <Volume2 size={18} className="text-slate-300" />
+                          </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 font-sans pb-20">
-      <div className="max-w-6xl mx-auto px-4 py-10">
-        
-        {/* Header */}
-        <header className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500 mb-3 drop-shadow-sm">
-            我是半个南京人
-          </h1>
-          <p className="text-slate-300 text-lg font-medium tracking-wide bg-white/5 inline-block px-4 py-1.5 rounded-full border border-white/10">
-            Dilfuza Kāng lǎo shī bilan xitoy tilini o'rganmiz
-          </p>
-        </header>
+        const GrammarTest = () => {
+          const [currentIdx, setCurrentIdx] = useState(0);
+          const [score, setScore] = useState(0);
+          const [showResult, setShowResult] = useState(false);
+          const [selectedOption, setSelectedOption] = useState(null);
 
-        {/* Tabs Navigation */}
-        <div className="flex flex-wrap justify-center gap-2 mb-8">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-5 py-2.5 rounded-full font-medium transition-all duration-300 border ${
-                activeTab === tab.id
-                  ? "bg-teal-500/20 border-teal-400/50 text-teal-300 shadow-[0_0_15px_rgba(45,212,191,0.2)]"
-                  : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-slate-200"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+          const handleOptionClick = (opt) => {
+            if (selectedOption !== null) return;
+            setSelectedOption(opt);
+            
+            if (opt === grammarTestQuestions[currentIdx].answer) {
+              setScore(s => s + 1);
+            }
 
-        {/* Content Area */}
-        <div className="min-h-[500px]">
-          {activeTab === 'flashcards' && <Flashcards />}
-          {activeTab === 'vocabTest' && <VocabTest />}
-          {activeTab === 'dialogues' && <Dialogues />}
-          {activeTab === 'grammar' && <Grammar />}
-          {activeTab === 'grammarTest' && <GrammarTest />}
-          {activeTab === 'fillBlanks' && <FillInBlanks />}
-        </div>
+            setTimeout(() => {
+              if (currentIdx < grammarTestQuestions.length - 1) {
+                setCurrentIdx(c => c + 1);
+                setSelectedOption(null);
+              } else {
+                setShowResult(true);
+              }
+            }, 1200);
+          };
 
-      </div>
+          const resetTest = () => {
+            setCurrentIdx(0);
+            setScore(0);
+            setShowResult(false);
+            setSelectedOption(null);
+          }
 
-      {/* Footer */}
-      <footer className="fixed bottom-0 w-full bg-slate-900/80 backdrop-blur-lg border-t border-white/10 py-4 text-center">
-        <p className="text-teal-500 font-medium text-sm">HSK 3 NEW3.0 - Lesson 15</p>
-        <p className="text-slate-500 text-xs mt-1">© 2026 Dilfuza Kāng lǎo shī (telegram@diffila)</p>
-      </footer>
-    </div>
-  );
-}
+          if (showResult) {
+            return (
+              <div className="flex flex-col items-center justify-center p-10 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 mt-10 max-w-md mx-auto text-center">
+                <h2 className="text-3xl font-bold text-white mb-4">语法测试完成</h2>
+                <p className="text-xl text-teal-300 mb-6">得分: {score} / {grammarTestQuestions.length}</p>
+                <button onClick={resetTest} className="flex items-center px-6 py-3 bg-gradient-to-r from-teal-500 to-blue-500 rounded-full text-white font-semibold hover:from-teal-400 hover:to-blue-400 transition-all">
+                  <RotateCcw className="mr-2" size={20} /> 再做一次
+                </button>
+              </div>
+            );
+          }
+
+          const currentQ = grammarTestQuestions[currentIdx];
+
+          return (
+            <div className="max-w-xl mx-auto mt-10">
+              <div className="flex justify-between items-center mb-6 text-slate-300">
+                <span className="font-medium">题 {currentIdx + 1} / {grammarTestQuestions.length}</span>
+                <span className="font-medium text-teal-400">得分: {score}</span>
+              </div>
+              
+              <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-8 mb-6 flex flex-col items-center shadow-lg text-center">
+                <h2 className="text-3xl font-bold text-white tracking-wider">{currentQ.q}</h2>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {currentQ.options.map((opt, i) => {
+                  let btnClass = "bg-white/5 border border-white/10 hover:bg-white/10 text-white";
+                  if (selectedOption !== null) {
+                    if (opt === currentQ.answer) btnClass = "bg-green-500/20 border-green-500 text-green-300";
+                    else if (opt === selectedOption) btnClass = "bg-red-500/20 border-red-500 text-red-300";
+                  }
+                  return (
+                    <button 
+                      key={i}
+                      onClick={() => handleOptionClick(opt)}
+                      disabled={selectedOption !== null}
+                      className={`p-4 rounded-xl text-xl font-medium transition-all ${btnClass}`}
+                    >
+                      {opt}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        };
+
+        const FillInBlanks = () => {
+          const [questions, setQuestions] = useState([]);
+          const [currentIdx, setCurrentIdx] = useState(0);
+          const [score, setScore] = useState(0);
+          const [showResult, setShowResult] = useState(false);
+          const [selectedOption, setSelectedOption] = useState(null);
+
+          useEffect(() => {
+            setQuestions(shuffleArray([...fillInBlanksQuestions]));
+          }, []);
+
+          const handleOptionClick = (opt) => {
+            if (selectedOption !== null) return;
+            setSelectedOption(opt);
+            
+            if (opt === questions[currentIdx].answer) {
+              setScore(s => s + 1);
+            }
+
+            setTimeout(() => {
+              if (currentIdx < questions.length - 1) {
+                setCurrentIdx(c => c + 1);
+                setSelectedOption(null);
+              } else {
+                setShowResult(true);
+              }
+            }, 1200);
+          };
+
+          const resetTest = () => {
+            setQuestions(shuffleArray([...fillInBlanksQuestions]));
+            setCurrentIdx(0);
+            setScore(0);
+            setShowResult(false);
+            setSelectedOption(null);
+          };
+
+          if (questions.length === 0) return null;
+
+          if (showResult) {
+            return (
+              <div className="flex flex-col items-center justify-center p-10 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 mt-10 max-w-md mx-auto text-center">
+                <h2 className="text-3xl font-bold text-white mb-4">Test Yakunlandi!</h2>
+                <p className="text-xl text-teal-300 mb-6">Natija: {score} / {questions.length}</p>
+                <button onClick={resetTest} className="flex items-center px-6 py-3 bg-gradient-to-r from-teal-500 to-blue-500 rounded-full text-white font-semibold hover:from-teal-400 hover:to-blue-400 transition-all">
+                  <RotateCcw className="mr-2" size={20} /> Qayta boshlash
+                </button>
+              </div>
+            );
+          }
+
+          const currentQ = questions[currentIdx];
+          const blankDisplay = selectedOption !== null 
+            ? <span className={`px-4 py-1 mx-2 rounded border-b-2 ${selectedOption === currentQ.answer ? 'text-green-400 border-green-400' : 'text-red-400 border-red-400'}`}>{selectedOption}</span> 
+            : <span className="px-6 py-1 mx-2 border-b-2 border-slate-400 text-transparent">____</span>;
+
+          return (
+            <div className="max-w-2xl mx-auto mt-10">
+              <div className="flex justify-between items-center mb-6 text-slate-300">
+                <span className="font-medium">Savol {currentIdx + 1} / {questions.length}</span>
+                <span className="font-medium text-teal-400">Ball: {score}</span>
+              </div>
+              
+              <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-10 mb-8 flex flex-col items-center shadow-lg text-center">
+                <h2 className="text-3xl leading-loose font-medium text-white">
+                  {currentQ.sentenceParts[0]}
+                  {blankDisplay}
+                  {currentQ.sentenceParts[1]}
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                {currentQ.options.map((opt, i) => {
+                  let btnClass = "bg-white/5 border border-white/10 hover:bg-white/10 text-white";
+                  if (selectedOption !== null) {
+                    if (opt === currentQ.answer) btnClass = "bg-green-500/20 border-green-500 text-green-300";
+                    else if (opt === selectedOption) btnClass = "bg-red-500/20 border-red-500 text-red-300";
+                  }
+                  return (
+                    <button 
+                      key={i}
+                      onClick={() => handleOptionClick(opt)}
+                      disabled={selectedOption !== null}
+                      className={`p-4 rounded-xl text-2xl font-bold transition-all ${btnClass}`}
+                    >
+                      {opt}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        };
+
+        function App() {
+          const [activeTab, setActiveTab] = useState('flashcards');
+
+          const tabs = [
+            { id: 'flashcards', label: "Fleshkartalar" },
+            { id: 'vocabTest', label: "Lug'at testi" },
+            { id: 'dialogues', label: "Muloqot" },
+            { id: 'grammar', label: "Grammatika" },
+            { id: 'grammarTest', label: "Grammatika testi" },
+            { id: 'fillBlanks', label: "So'zlarni to'ldirish" },
+          ];
+
+          return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 font-sans pb-20">
+              <div className="max-w-6xl mx-auto px-4 py-10">
+                
+                {/* Header */}
+                <header className="text-center mb-12">
+                  <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500 mb-3 drop-shadow-sm">
+                    我是半个南京人
+                  </h1>
+                  <p className="text-slate-300 text-lg font-medium tracking-wide bg-white/5 inline-block px-4 py-1.5 rounded-full border border-white/10">
+                    Dilfuza Kāng lǎo shī bilan xitoy tilini o'rganmiz
+                  </p>
+                </header>
+
+                {/* Tabs Navigation */}
+                <div className="flex flex-wrap justify-center gap-2 mb-8">
+                  {tabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`px-5 py-2.5 rounded-full font-medium transition-all duration-300 border ${
+                        activeTab === tab.id
+                          ? "bg-teal-500/20 border-teal-400/50 text-teal-300 shadow-[0_0_15px_rgba(45,212,191,0.2)]"
+                          : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-slate-200"
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Content Area */}
+                <div className="min-h-[500px]">
+                  {activeTab === 'flashcards' && <Flashcards />}
+                  {activeTab === 'vocabTest' && <VocabTest />}
+                  {activeTab === 'dialogues' && <Dialogues />}
+                  {activeTab === 'grammar' && <Grammar />}
+                  {activeTab === 'grammarTest' && <GrammarTest />}
+                  {activeTab === 'fillBlanks' && <FillInBlanks />}
+                </div>
+
+              </div>
+
+              {/* Footer */}
+              <footer className="fixed bottom-0 left-0 w-full bg-slate-900/80 backdrop-blur-lg border-t border-white/10 py-4 text-center">
+                <p className="text-teal-500 font-medium text-sm">HSK 3 NEW3.0 - Lesson 15</p>
+                <p className="text-slate-500 text-xs mt-1">© 2026 Dilfuza Kāng lǎo shī (telegram@diffila)</p>
+              </footer>
+            </div>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
