@@ -4,22 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HSK3 第15课：我是半个南京人</title>
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS (用于现代响应式样式) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- React & ReactDOM -->
+    <!-- React & ReactDOM (用于组件化开发) -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <!-- Babel (使用稳定版本) -->
+    <!-- Babel (用于在浏览器中实时编译 JSX 代码) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.3/babel.min.js"></script>
 </head>
 <body class="bg-slate-900 text-white font-sans antialiased">
+    <!-- React 应用的挂载点 -->
     <div id="root"></div>
 
     <!-- 明确指定 presets 为 react -->
     <script type="text/babel" data-presets="react">
         const { useState, useEffect } = React;
 
-        // --- ICONS (使用内联 SVG 替代第三方库以解决预览环境依赖报错) ---
+        // --- ICONS (使用内联 SVG 替代第三方库以解决依赖问题并保证完美运行) ---
         const Volume2 = ({ size = 24, className = "" }) => (
           <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
             <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
@@ -47,7 +48,7 @@
           </svg>
         );
 
-        // --- DATA ---
+        // --- DATA (学习内容数据配置) ---
         const vocabulary = [
           { ch: "蓝", pinyin: "lán", uz: "ko'k", ru: "синий", en: "blue" },
           { ch: "段", pinyin: "duàn", uz: "qism / davr", ru: "отрезок / период", en: "period / section" },
@@ -98,7 +99,7 @@
               { speaker: "王一雪", ch: "太好了！你快给我介绍一下南京吧。", pinyin: "Tài hǎo le! Nǐ kuài gěi wǒ jièshào yíxià Nánjīng ba.", uz: "Juda yaxshi! Tezda menga Nankinni tanishtirib bering.", ru: "Отлично! Быстрее расскажи мне о Нанкине.", en: "Great! Quickly introduce Nanjing to me." },
               { speaker: "杨同乐", ch: "南京有两千年以上的历史，有老城、老街，还有很多有名的景点，每年去旅游的游客特别多。", pinyin: "Nánjīng yǒu liǎngqiān nián yǐshàng de lìshǐ, yǒu lǎochéng, lǎojiē, hái yǒu hěnduō yǒumíng de jǐngdiǎn, měinián qù lǚyóu de yóukè tèbié duō.", uz: "Nankin ikki ming yildan ortiq tarixga ega, eski shahar, eski ko'chalar, shuningdek, juda ko'p mashhur joylar bor, har yili sayohatchilar juda ko'p bo'ladi.", ru: "У Нанкина более чем двухтысячелетняя история, есть старый город, старые улицы, а также много известных достопримечательностей, туристов, приезжающих сюда каждый год, особенно много.", en: "Nanjing has a history of more than 2000 years, there's an old city, old streets, and many famous scenic spots, tourists who go there every year are especially numerous." },
               { speaker: "王一雪", ch: "除了这些以外，你再告诉我一些外地人不知道的地方。", pinyin: "Chúle zhèxiē yǐwài, nǐ zài gàosu wǒ yìxiē wàidì rén bù zhīdào de dìfang.", uz: "Bulardan tashqari, menga begona odamlar bilmaydigan ba'zi joylarni ayting.", ru: "Помимо этого, расскажи мне еще о некоторых местах, которые не знают приезжие.", en: "Besides these, tell me some places that outsiders don't know about." },
-              { speaker: "杨同乐", ch: "那太多了，我得一点儿一点儿给您讲。", pinyin: "Nà tài duō le, wǒ děi yìdiǎnr yìdiǎnr gěi nín jiǎng.", uz: "Ular juda ko'p, men sizga oz-ozdan aytib berishim kerak.", ru: "Их слишком много, я должен рассказывать вам понемногу.", en: "There are too many, I have to tell you little by little." },
+              { speaker: "杨同乐", ch: "那太多了，我得一点儿一点儿给您讲。", pinyin: "Nà tài duō le, wǒ děi yìdiǎnr yìdiǎnr gěi nín jiǎng.", uz: "Ular juda ko'p, men sizga oz-ozdan aytib berishim kerak.", ru: "Их সাকিব 너무 많아서, 조금씩 얘기해야겠어요.", en: "There are too many, I have to tell you little by little." },
               { speaker: "王一雪", ch: "行，下班后我请你吃晚饭，咱们边吃边聊。", pinyin: "Xíng, xiàbān hòu wǒ qǐng nǐ chī wǎnfàn, zánmen biān chī biān liáo.", uz: "Yaxshi, ishdan keyin sizni kechki ovqatga taklif qilaman, ovqatlanib suhbatlashamiz.", ru: "Хорошо, после работы я угощу тебя ужином, поедим и поболтаем.", en: "Okay, after work I'll treat you to dinner, we can eat and chat." }
             ]
           },
@@ -203,7 +204,7 @@
           { sentenceParts: ["天空很 ", "，天气很好。"], answer: "蓝", options: ["蓝", "有名", "以上", "可是"] }
         ];
 
-        // --- UTILS ---
+        // --- UTILS (工具函数) ---
         const speakText = (text) => {
           if ('speechSynthesis' in window) {
             const utterance = new SpeechSynthesisUtterance(text);
@@ -216,7 +217,7 @@
           return [...array].sort(() => Math.random() - 0.5);
         };
 
-        // --- COMPONENTS ---
+        // --- COMPONENTS (UI 组件) ---
         const Flashcards = () => {
           const [currentIndex, setCurrentIndex] = useState(0);
           const [isFlipped, setIsFlipped] = useState(false);
@@ -244,7 +245,7 @@
                   className="absolute w-full h-full transition-transform duration-500"
                   style={{ transformStyle: "preserve-3d", transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)" }}
                 >
-                  {/* Front */}
+                  {/* 正面 */}
                   <div 
                     className="absolute w-full h-full flex flex-col items-center justify-center rounded-3xl shadow-2xl bg-slate-800 border border-white/20" 
                     style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}
@@ -258,7 +259,7 @@
                     <span className="text-8xl font-bold text-white drop-shadow-lg">{word.ch}</span>
                   </div>
 
-                  {/* Back */}
+                  {/* 反面 */}
                   <div 
                     className="absolute w-full h-full flex flex-col items-center justify-center p-6 text-center rounded-3xl shadow-2xl bg-slate-800 border border-teal-500/30" 
                     style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
@@ -635,6 +636,7 @@
           );
         };
 
+        // --- 主应用组件 ---
         function App() {
           const [activeTab, setActiveTab] = useState('flashcards');
 
@@ -699,6 +701,7 @@
           );
         }
 
+        // --- 渲染到 DOM ---
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
